@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Midnight Counter DApp</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0a;
+      color: #e5e5e5;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 480px;
+      border: 1px solid #1f1f1f;
+      background: #111;
+    }
+
+    .header {
+      border-bottom: 1px solid #1f1f1f;
+      padding: 20px 24px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #1f1f1f;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3b82f6;
+    }
+
+    h1 {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #f0f0f0;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 0.04em;
+    }
+
+    .section {
+      border-bottom: 1px solid #1f1f1f;
+      padding: 20px 24px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #444;
+      margin-bottom: 14px;
+    }
+
+    /* Wallet */
+    .wallet-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .wallet-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #333;
+    }
+
+    .status-dot.connected { background: #22c55e; }
+    .status-dot.connecting { background: #f59e0b; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .btn {
+      border: 1px solid #2a2a2a;
+      background: #1a1a1a;
+      color: #ccc;
+      padding: 0 16px;
+      height: 36px;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn:hover { background: #222; border-color: #3a3a3a; color: #fff; }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .btn-blue {
+      border-color: rgba(59,130,246,0.35);
+      background: rgba(59,130,246,0.08);
+      color: #93c5fd;
+    }
+
+    .btn-blue:hover {
+      background: rgba(59,130,246,0.14);
+      border-color: rgba(59,130,246,0.5);
+      color: #bfdbfe;
+    }
+
+    .btn-danger {
+      border-color: rgba(239,68,68,0.3);
+      background: rgba(239,68,68,0.06);
+      color: #fca5a5;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.45);
+    }
+
+    /* Address row */
+    .addr-row {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #1a1a1a;
+      background: #0d0d0d;
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    .addr-text {
+      font-size: 10px;
+      color: #555;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      color: #444;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 4px;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .copy-btn:hover { color: #888; }
+
+    /* Contract attach */
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      height: 36px;
+      border: 1px solid #1f1f1f;
+      background: #0d0d0d;
+      color: #ccc;
+      padding: 0 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus { border-color: rgba(59,130,246,0.4); }
+    input[type="text"]::placeholder { color: #333; }
+
+    /* Counter display */
+    .counter-display {
+      text-align: center;
+      padding: 28px 0 20px;
+    }
+
+    .counter-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #444;
+      margin-bottom: 10px;
+    }
+
+    .counter-value {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 72px;
+      font-weight: 700;
+      color: #f0f0f0;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+
+    .counter-value.changed {
+      color: #3b82f6;
+    }
+
+    /* Action buttons */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .btn-action {
+      height: 44px;
+      font-size: 18px;
+      border: 1px solid #1f1f1f;
+      background: #141414;
+      color: #ccc;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: monospace;
+    }
+
+    .btn-action:hover { background: #1e1e1e; border-color: #2a2a2a; color: #fff; }
+    .btn-action:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    .btn-action.inc { border-color: rgba(34,197,94,0.3); color: #86efac; }
+    .btn-action.inc:hover { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.5); }
+
+    .btn-action.dec { border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+    .btn-action.dec:hover { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.5); }
+
+    .btn-action.rst { border-color: rgba(234,179,8,0.3); color: #fde047; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; }
+    .btn-action.rst:hover { background: rgba(234,179,8,0.06); border-color: rgba(234,179,8,0.45); }
+
+    /* Data rows */
+    .data-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #161616;
+    }
+
+    .data-row:last-child { border-bottom: none; }
+
+    .data-key {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #444;
+    }
+
+    .data-val {
+      font-size: 11px;
+      color: #777;
+      max-width: 60%;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .data-val a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    .data-val a:hover { text-decoration: underline; }
+
+    /* Status bar */
+    .status-bar {
+      padding: 12px 24px;
+      font-size: 10px;
+      color: #444;
+      letter-spacing: 0.08em;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-bar.error { color: #f87171; }
+    .status-bar.success { color: #4ade80; }
+    .status-bar.loading { color: #60a5fa; }
+
+    .spinner {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 1.5px solid #333;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Info notice */
+    .notice {
+      border: 1px solid rgba(59,130,246,0.2);
+      background: rgba(59,130,246,0.05);
+      padding: 12px 16px;
+      font-size: 11px;
+      color: #60a5fa;
+      line-height: 1.6;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Midnight Network · Preview
+    </div>
+    <h1>On-Chain Counter</h1>
+    <p class="subtitle">Compact smart contract · Increment / Decrement / Reset</p>
+  </div>
+
+  <!-- Wallet Section -->
+  <div class="section" id="walletSection">
+    <div class="section-label">Wallet</div>
+    <div class="wallet-row">
+      <div class="wallet-status">
+        <span class="status-dot" id="walletDot"></span>
+        <span id="walletStatusText">Not connected</span>
+      </div>
+      <button class="btn btn-blue" id="connectBtn" onclick="connectWallet()">Connect 1AM Wallet</button>
+    </div>
+    <div class="addr-row hidden" id="addrRow">
+      <span class="addr-text" id="addrText"></span>
+      <button class="copy-btn" onclick="copyAddr()" title="Copy address">⧉</button>
+    </div>
+  </div>
+
+  <!-- Contract Section -->
+  <div class="section hidden" id="contractSection">
+    <div class="section-label">Contract</div>
+
+    <div id="attachPanel">
+      <div class="notice" style="margin-bottom:14px;">
+        Deploy a new counter contract or paste an existing contract address to attach.
+      </div>
+      <div class="input-row">
+        <input type="text" id="contractInput" placeholder="Paste contract address to attach..." />
+        <button class="btn btn-blue" onclick="attachContract()">Attach</button>
+        <button class="btn" onclick="deployContract()">Deploy</button>
+      </div>
+    </div>
+
+    <div class="hidden" id="contractInfo">
+      <div class="data-row">
+        <span class="data-key">Address</span>
+        <span class="data-val"><a id="contractLink" href="#" target="_blank" rel="noopener"></a></span>
+      </div>
+      <div class="data-row">
+        <span class="data-key">Network</span>
+        <span class="data-val">preview</span>
+      </div>
+      <div class="data-row">
+        <span class="data-key">Status</span>
+        <span class="data-val" style="color:#22c55e;">● Live</span>
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn" style="font-size:9px;" onclick="detachContract()">Detach / Change</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Counter Section -->
+  <div class="section hidden" id="counterSection">
+    <div class="section-label">Ledger State</div>
+
+    <div class="counter-display">
+      <div class="counter-label">count</div>
+      <div class="counter-value" id="counterValue">—</div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-action dec" id="decBtn" onclick="callCircuit('decrement')" disabled>−</button>
+      <button class="btn-action rst" id="rstBtn" onclick="callCircuit('reset')" disabled>RESET</button>
+      <button class="btn-action inc" id="incBtn" onclick="callCircuit('increment')" disabled>+</button>
+    </div>
+  </div>
+
+  <!-- Last Tx Section -->
+  <div class="section hidden" id="txSection">
+    <div class="section-label">Last Transaction</div>
+    <div class="data-row">
+      <span class="data-key">Tx Hash</span>
+      <span class="data-val"><a id="txLink" href="#" target="_blank" rel="noopener"></a></span>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar" id="statusBar">
+    Ready · Connect your 1AM wallet to begin
+  </div>
+
+</div>
+
+<script>
+  // ─── State ───────────────────────────────────────────────────────────────────
+  let walletAPI = null;
+  let walletAddress = null;
+  let contractAddress = null;
+  let runtime = null;
+  let contractInstance = null;
+  let isBusy = false;
+
+  const EXPLORER = 'https://explorer.1am.xyz';
+  const NETWORK  = 'preview';
+
+  // ─── UI helpers ──────────────────────────────────────────────────────────────
+  function setStatus(msg, type = '') {
+    const bar = document.getElementById('statusBar');
+    bar.className = 'status-bar' + (type ? ' ' + type : '');
+    bar.innerHTML = type === 'loading'
+      ? `<span class="spinner"></span>${msg}`
+      : msg;
+  }
+
+  function show(id)  { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id)  { document.getElementById(id).classList.add('hidden'); }
+
+  function setButtons(enabled) {
+    ['incBtn','decBtn','rstBtn'].forEach(id => {
+      document.getElementById(id).disabled = !enabled;
+    });
+  }
+
+  function flashCounter(val) {
+    const el = document.getElementById('counterValue');
+    el.textContent = val;
+    el.classList.add('changed');
+    setTimeout(() => el.classList.remove('changed'), 600);
+  }
+
+  function copyAddr() {
+    if (walletAddress) {
+      navigator.clipboard.writeText(walletAddress);
+      setStatus('Address copied!', 'success');
+      setTimeout(() => setStatus('Wallet connected · ' + walletAddress.slice(0,16) + '...', 'success'), 1500);
+    }
+  }
+
+  // ─── Wallet detection ────────────────────────────────────────────────────────
+  function detectWallet() {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        const mn = window.midnight;
+        if (mn) {
+          for (const key of Object.keys(mn)) {
+            const w = mn[key];
+            if (w && typeof w.name === 'string' && w.name.toLowerCase().includes('1am')) {
+              clearInterval(interval);
+              resolve(w);
+              return;
+            }
+          }
+          // fallback: any wallet
+          const keys = Object.keys(mn);
+          if (keys.length > 0) {
+            clearInterval(interval);
+            resolve(mn[keys[0]]);
+            return;
+          }
+        }
+        if (attempts >= 40) {
+          clearInterval(interval);
+          reject(new Error('1AM wallet not detected. Please install it from 1am.xyz'));
+        }
+      }, 500);
+    });
+  }
+
+  // ─── Connect wallet ──────────────────────────────────────────────────────────
+  async function connectWallet() {
+    if (isBusy) return;
+    isBusy = true;
+    const btn = document.getElementById('connectBtn');
+    btn.disabled = true;
+    btn.textContent = 'Detecting...';
+    setStatus('Scanning for 1AM wallet...', 'loading');
+
+    const dot = document.getElementById('walletDot');
+    dot.className = 'status-dot connecting';
+    document.getElementById('walletStatusText').textContent = 'Connecting...';
+
+    try {
+      const wallet = await detectWallet();
+      setStatus('Connecting to Midnight...', 'loading');
+      btn.textContent = 'Connecting...';
+
+      const api = await wallet.connect();
+      walletAPI = api;
+
+      // get address
+      const state = await api.state();
+      walletAddress = state?.unshieldedAddress ?? state?.address ?? 'unknown';
+
+      dot.className = 'status-dot connected';
+      document.getElementById('walletStatusText').textContent = 'Connected';
+      btn.textContent = 'Connected';
+      btn.disabled = true;
+
+      document.getElementById('addrText').textContent = walletAddress;
+      show('addrRow');
+      show('contractSection');
+
+      setStatus('Wallet connected · ' + walletAddress.slice(0,16) + '...', 'success');
+    } catch (err) {
+      dot.className = 'status-dot';
+      document.getElementById('walletStatusText').textContent = 'Not connected';
+      btn.disabled = false;
+      btn.textContent = 'Connect 1AM Wallet';
+      setStatus('Connection failed: ' + err.message, 'error');
+    } finally {
+      isBusy = false;
+    }
+  }
+
+  // ─── Load runtime lazily ─────────────────────────────────────────────────────
+  async function getRuntime() {
+    if (runtime) return runtime;
+    setStatus('Loading contract runtime...', 'loading');
+
+    const [
+      { createManagedContractRuntime },
+      { buildProviders },
+      contractModule,
+      { managedArtifacts }
+    ] = await Promise.all([
+      import('./lib/compact-contract.js'),
+      import('./lib/providers.js'),
+      import('./managed/contract/contract/index.js'),
+      import('./managed/contract/compiler/artifact-map.js'),
+    ]);
+
+    const providers = await buildProviders(walletAPI);
+
+    runtime = createManagedContractRuntime({
+      compiledContract: contractModule,
+      artifacts: managedArtifacts,
+      wallet: providers,
+    });
+
+    return runtime;
+  }
+
+  // ─── Deploy ──────────────────────────────────────────────────────────────────
+  async function deployContract() {
+    if (isBusy || !walletAPI) return;
+    isBusy = true;
+    setButtons(false);
+    setStatus('Deploying contract to Midnight preview...', 'loading');
+
+    try {
+      const rt = await getRuntime();
+      setStatus('Submitting deploy transaction...', 'loading');
+      const instance = await rt.deploy();
+      contractInstance = instance;
+      contractAddress = instance.deployTxData?.public?.contractAddress
+        ?? instance.contractAddress
+        ?? instance.address;
+
+      setContractActive(contractAddress);
+      await refreshState();
+      setStatus('Contract deployed successfully!', 'success');
+    } catch (err) {
+      setStatus('Deploy failed: ' + err.message, 'error');
+    } finally {
+      isBusy = false;
+    }
+  }
+
+  // ─── Attach ──────────────────────────────────────────────────────────────────
+  async function attachContract() {
+    const addr = document.getElementById('contractInput').value.trim();
+    if (!addr) { setStatus('Please paste a contract address first.', 'error'); return; }
+    if (isBusy || !walletAPI) return;
+    isBusy = true;
+    setStatus('Attaching to contract...', 'loading');
+
+    try {
+      const rt = await getRuntime();
+      contractInstance = await rt.attach(addr);
+      contractAddress = addr;
+      setContractActive(contractAddress);
+      await refreshState();
+      setStatus('Attached to contract · ' + addr.slice(0,16) + '...', 'success');
+    } catch (err) {
+      setStatus('Attach failed: ' + err.message, 'error');
+    } finally {
+      isBusy = false;
+    }
+  }
+
+  function setContractActive(addr) {
+    hide('attachPanel');
+    show('contractInfo');
+    show('counterSection');
+
+    const link = document.getElementById('contractLink');
+    link.textContent = addr.slice(0,12) + '...' + addr.slice(-8);
+    link.href = `${EXPLORER}/contract/${addr}?network=${NETWORK}`;
+
+    setButtons(true);
+  }
+
+  function detachContract() {
+    contractAddress = null;
+    contractInstance = null;
+    runtime = null;
+    show('attachPanel');
+    hide('contractInfo');
+    hide('counterSection');
+    hide('txSection');
+    document.getElementById('counterValue').textContent = '—';
+    document.getElementById('contractInput').value = '';
+    setStatus('Detached · Deploy or attach a contract to continue.', '');
+  }
+
+  // ─── Read state ───────────────────────────────────────────────────────────────
+  async function refreshState() {
+    if (!runtime || !contractAddress) return;
+    try {
+      const state = await runtime.read(contractAddress);
+      const count = state?.count ?? state?.ledger?.count ?? '?';
+      flashCounter(count.toString());
+    } catch (err) {
+      setStatus('State read failed: ' + err.message, 'error');
+    }
+  }
+
+  // ─── Call circuit ─────────────────────────────────────────────────────────────
+  async function callCircuit(name) {
+    if (isBusy || !contractInstance) return;
+    isBusy = true;
+    setButtons(false);
+
+    const labels = {
+      increment: 'Incrementing on-chain...',
+      decrement: 'Decrementing on-chain...',
+      reset:     'Resetting counter...',
+    };
+
+    setStatus(labels[name] || 'Executing circuit...', 'loading');
+
+    try {
+      const tx = await contractInstance.invoke(name);
+      const txHash = tx?.txHash ?? tx?.hash ?? tx?.id ?? tx;
+
+      if (txHash && typeof txHash === 'string') {
+        const link = document.getElementById('txLink');
+        link.textContent = txHash.slice(0,12) + '...' + txHash.slice(-8);
+        link.href = `${EXPLORER}/tx/${txHash}?network=${NETWORK}`;
+        show('txSection');
+      }
+
+      await refreshState();
+      setStatus(name.charAt(0).toUpperCase() + name.slice(1) + ' successful!', 'success');
+    } catch (err) {
+      setStatus(name + ' failed: ' + err.message, 'error');
+    } finally {
+      isBusy = false;
+      setButtons(true);
+    }
+  }
+</script>
+
+</body>
+</html>
